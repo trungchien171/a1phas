@@ -46,7 +46,7 @@ def strategytest(symbol, qty):
     sl = None
 
     # Check entry condition
-    if not in_position and df['ret'].iloc[-1] > 0.01:
+    if not in_position and df['ret'].iloc[-1] > 0.006:
         buy_price = df['price'].iloc[-1]
         tp = buy_price * 1.05
         sl = buy_price * 0.95
