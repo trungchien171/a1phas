@@ -8,26 +8,36 @@ warnings.filterwarnings("ignore")
 insample_url = "https://alphaverse.alpha-grep.com/api/v1/insample"
 result_url = "https://alphaverse.alpha-grep.com/api/v1/result"
 submission_url = "https://alphaverse.alpha-grep.com/api/v1/outsample"
-token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyNDM0MzAzMiwianRpIjoiMGUzNTBhMzQtODc3YS00MDBlLTk3OTItZmUyNzczYmVkOTJmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6InRydW5nY2hpZW4xNzFAZ21haWwuY29tIiwibmJmIjoxNzI0MzQzMDMyLCJjc3JmIjoiNTU2NjM5MTAtY2I4Yy00Nzc5LTk1OTYtODA1OWU5ODlkZGYwIiwiZXhwIjoxNzI0NDI5NDMyfQ.69X0et6IKIusgSGkNtx56_uMMw7rzaUf-Aala6e1HIo"
+token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyNDk0NzQ4MCwianRpIjoiZmI4MzdlODItZjE1Yy00N2Y2LWI1MDUtMDI4ZjMyMzNjYjk3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6InRydW5nY2hpZW4xNzFAZ21haWwuY29tIiwibmJmIjoxNzI0OTQ3NDgwLCJjc3JmIjoiNDBhZDgzNjctMGY2ZS00Y2I4LWI5OTktZDYyODQwNzQ0YjU4IiwiZXhwIjoxNzI1MDMzODgwfQ.5AN92mlHg6blYxEbBgq7yS6u0fxQZ94SOg9yaY6isuE"
 
 def simulation_flow():
     headers = {"Authorization": token}
         
     def generate_payloads():
         t1 = [1,2, 3, 4, 5, 6, 7, 8, 9, 10]
-        # t2 = [1,2, 3, 4, 5, 6, 7, 8, 9, 10]
+        t2 = [1,2, 3, 4, 5, 6, 7, 8, 9, 10]
+        f1 = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        # t3 = [1,2, 3, 4, 5, 6, 7, 8, 9, 10]
+        # t4 = [1,2, 3, 4, 5, 6, 7, 8, 9, 10]
+        # t5 = [1,2, 3, 4, 5, 6, 7, 8, 9, 10]
+        # t6 = [1,2, 3, 4, 5, 6, 7, 8, 9, 10]
         dataset_list = ["CHINA5000"]
         region_list = ["china"]
         truncation_list = [0.015]
-        decay_list = [4]
+        decay_list = [3]
         pasteurize_list = [False]
-        neutral_list = ["sub_sector"]
+        neutral_list = ["industry"]
         competition_list = ["APL_CHINA_2024"]
         
         payloads = []
         for (
             t1,
-            # t2,
+            t2,
+            f1,
+            # t3,
+            # t4,
+            # t5,
+            # t6,
             dataset,
             region,
             truncation,
@@ -37,7 +47,12 @@ def simulation_flow():
             competition,
         ) in itertools.product(
             t1,
-            # t2,
+            t2,
+            f1,
+            # t3,
+            # t4,
+            # t5,
+            # t6,
             dataset_list,
             region_list,
             truncation_list,
@@ -47,7 +62,13 @@ def simulation_flow():
             competition_list,
         ):
             payload = {
-                "code": f"alpha = -cs_zscore(bollinger_u - bollinger_d) * cs_zscore(ts_sum(cmo, window={t1}))",
+                "code": f'''alpha = -cs_zscore(
+            ts_mean(
+                log(risk_BETA * risk_LIQUIDTY) 
+                - ts_decay_exp_window(risk_SIZE, window={t1}, factor={f1})
+            , window={t2})
+        )
+''',
                 "settings": {
                     "dataset": dataset,
                     "region": region,
@@ -69,7 +90,7 @@ def simulation_flow():
     outsample_task_ids = []
     
     # Submit all generated payloads for insample simulation
-    for payload in payloads:
+    for payload in payloads[:61]:
         response = requests.post(
             insample_url, headers=headers, json=payload, verify=False
         )
@@ -122,3 +143,5 @@ def simulation_flow():
 
 if __name__ == "__main__":
     simulation_flow()
+
+
